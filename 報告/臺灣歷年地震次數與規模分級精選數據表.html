@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>臺灣歷年地震次數與規模分級精選數據表 (1994–2026) — Lieflat Charts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --ink: #0f172a;
+    --muted: #475569;
+    --faint: #94a3b8;
+    --border: #e2e8f0;
+    --blue: #2563eb;
+    --blue-bg: #eff6ff;
+    --amber: #d97724;
+    --amber-bg: #fffbeb;
+    --crimson: #dc2626;
+    --crimson-bg: #fef2f2;
+    --row-hover: #f1f5f9;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    color: var(--ink);
+    padding: 40px 24px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container {
+    max-width: 1360px;
+    margin: 0 auto;
+  }
+  .header {
+    margin-bottom: 24px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: #e2e8f0;
+    color: #475569;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .filter-btns {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn.active, .btn:hover {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
+  }
+  .search-box {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    outline: none;
+    width: 240px;
+    background: var(--card);
+  }
+  .search-box:focus {
+    border-color: #0f172a;
+  }
+  .table-wrapper {
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    text-align: right;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  th:first-child, td:first-child { text-align: center; }
+  th:nth-child(4), td:nth-child(4),
+  th:last-child, td:last-child { text-align: left; }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    text-align: right;
+    white-space: nowrap;
+  }
+  tr:hover td {
+    background: var(--row-hover);
+  }
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+  }
+  .row-peak-amber td {
+    background: #fffbeb !important;
+  }
+  .row-peak-crimson td {
+    background: #fef2f2 !important;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tag-m7 { background: #fee2e2; color: #991b1b; }
+  .tag-m6 { background: #ffedd5; color: #9a3412; }
+  .tag-m5 { background: #e0f2fe; color: #075985; }
+  .note-cell {
+    font-size: 11.5px;
+    color: #64748b;
+  }
+  .footer-note {
+    font-size: 11px;
+    color: var(--faint);
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <span class="badge">Lieflat Charts · 精選數據表</span>
+    <h1>臺灣歷年地震次數與規模分級統計表 (1994–2026 年)</h1>
+    <div class="sub">
+      嚴格等寬數值對齊 · 涵蓋全臺 873,145 筆觀測紀錄 · 區分微震、輕震、中震、強震、烈震與大震 · 標註重大歷史震災
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="filter-btns">
+      <button class="btn active" onclick="filterData('all', this)">全部 33 年度</button>
+      <button class="btn" onclick="filterData('major', this)">烈震高發年 (M≥6 ≥ 3次)</button>
+      <button class="btn" onclick="filterData('great', this)">大震年 (M ≥ 7.0)</button>
+      <button class="btn" onclick="filterData('modern', this)">2012 後新一代監測期</button>
+    </div>
+    <input type="text" class="search-box" id="searchBox" placeholder="搜尋年份、規模或震災名稱..." oninput="searchTable()">
+  </div>
+
+  <div class="table-wrapper">
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>觀測年度</th>
+          <th>總地震筆數</th>
+          <th>最大規模 (M<sub>L</sub>)</th>
+          <th>最大震發生日期</th>
+          <th>平均規模</th>
+          <th>微震 (M&lt;3.0)</th>
+          <th>輕震 (3.0–3.9)</th>
+          <th>中震 (4.0–4.9)</th>
+          <th>強震 (5.0–5.9)</th>
+          <th>烈震 (6.0–6.9)</th>
+          <th>大震 (M≥7.0)</th>
+          <th>重大震災歷史紀事</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 由 JavaScript 動態渲染 -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer-note">
+    來源：交通部中央氣象署 (CWA) 地球物理資料管理系統 (GDMS) · 統計區間 1994/01/01 至 2026/07/30 · 依據震度與能量學分級：微震 (M&lt;3.0)、輕震 (3.0≤M&lt;4.0)、中震 (4.0≤M&lt;5.0)、強震 (5.0≤M&lt;6.0)、烈震 (6.0≤M&lt;7.0)、大震 (M≥7.0)。
+  </div>
+</div>
+
+<script>
+const STATS = [
+  {y:1994, tot:17506, maxM:6.60, date:"1994-05-24", avgM:2.32, m_micro:15408, m_minor:1849, m_med:217, m5:29, m6:3, m7:0, note:"花蓮外海強震 (規模 6.6)"},
+  {y:1995, tot:14336, maxM:6.50, date:"1995-06-25", avgM:2.29, m_micro:12823, m_minor:1297, m_med:193, m5:22, m6:1, m7:0, note:"花蓮外海地震"},
+  {y:1996, tot:16436, maxM:7.07, date:"1996-09-05", avgM:2.26, m_micro:14510, m_minor:1704, m_med:201, m5:18, m6:2, m7:1, note:"蘭嶼海域大震 (規模 7.07)"},
+  {y:1997, tot:15119, maxM:5.78, date:"1997-01-05", avgM:2.18, m_micro:13836, m_minor:1110, m_med:156, m5:17, m6:0, m7:0, note:"—"},
+  {y:1998, tot:14456, maxM:6.20, date:"1998-07-17", avgM:2.18, m_micro:13186, m_minor:1122, m_med:132, m5:15, m6:1, m7:0, note:"0717 嘉義瑞里地震 (傷亡5人)"},
+  {y:1999, tot:49556, maxM:7.30, date:"1999-09-20", avgM:2.26, m_micro:43783, m_minor:4978, m_med:706, m5:74, m6:14, m7:1, note:"921 集集大地震 (南投，烈震14次、強震74次)"},
+  {y:2000, tot:23929, maxM:6.70, date:"2000-06-10", avgM:2.18, m_micro:22012, m_minor:1647, m_med:240, m5:27, m6:3, m7:0, note:"宜蘭外海強震"},
+  {y:2001, tot:15839, maxM:6.70, date:"2001-12-18", avgM:2.18, m_micro:14367, m_minor:1279, m_med:178, m5:12, m6:3, m7:0, note:"花蓮秀林強震"},
+  {y:2002, tot:27697, maxM:6.80, date:"2002-03-31", avgM:2.14, m_micro:25624, m_minor:1819, m_med:223, m5:26, m6:5, m7:0, note:"331 大地震 (花蓮外海，臺北101起重機震落)"},
+  {y:2003, tot:24885, maxM:6.48, date:"2003-06-10", avgM:2.08, m_micro:23296, m_minor:1379, m_med:188, m5:20, m6:2, m7:0, note:"臺東成功地震 (池上斷層破裂)"},
+  {y:2004, tot:21267, maxM:6.58, date:"2004-11-08", avgM:2.05, m_micro:19897, m_minor:1200, m_med:154, m5:13, m6:3, m7:0, note:"蘇澳外海強震"},
+  {y:2005, tot:21483, maxM:6.00, date:"2005-06-01", avgM:2.04, m_micro:20029, m_minor:1230, m_med:202, m5:20, m6:2, m7:0, note:"花蓮外海地震"},
+  {y:2006, tot:17499, maxM:6.99, date:"2006-12-26", avgM:2.14, m_micro:15966, m_minor:1340, m_med:173, m5:15, m6:5, m7:0, note:"恆春海域雙震 (破壞東亞海底國際海纜)"},
+  {y:2007, tot:15881, maxM:6.63, date:"2007-09-06", avgM:2.18, m_micro:14436, m_minor:1308, m_med:123, m5:12, m6:2, m7:0, note:"宜蘭南澳外海地震"},
+  {y:2008, tot:17759, maxM:5.88, date:"2008-12-07", avgM:2.10, m_micro:16409, m_minor:1214, m_med:122, m5:14, m6:0, m7:0, note:"—"},
+  {y:2009, tot:19724, maxM:6.92, date:"2009-12-19", avgM:2.10, m_micro:18230, m_minor:1317, m_med:155, m5:18, m6:4, m7:0, note:"花蓮外海強震 (全臺有感)"},
+  {y:2010, tot:22632, maxM:6.42, date:"2010-03-04", avgM:1.96, m_micro:21495, m_minor:999, m_med:108, m5:28, m6:2, m7:0, note:"高雄甲仙地震 (高鐵出軌事故)"},
+  {y:2011, tot:21173, maxM:5.77, date:"2011-03-20", avgM:1.99, m_micro:19950, m_minor:1092, m_med:120, m5:11, m6:0, m7:0, note:"臺東成功地震"},
+  {y:2012, tot:30543, maxM:6.62, date:"2012-06-09", avgM:1.64, m_micro:29489, m_minor:909, m_med:126, m5:17, m6:2, m7:0, note:"氣象署密化寬頻網全面聯網 (下探微震極限)"},
+  {y:2013, tot:44664, maxM:6.48, date:"2013-06-02", avgM:1.54, m_micro:43542, m_minor:980, m_med:124, m5:14, m6:4, m7:0, note:"南投仁愛 0327 與 0602 雙強震"},
+  {y:2014, tot:35799, maxM:5.99, date:"2014-05-21", avgM:1.56, m_micro:34812, m_minor:861, m_med:110, m5:16, m6:0, m7:0, note:"花蓮鳳林地震"},
+  {y:2015, tot:43770, maxM:6.38, date:"2015-04-20", avgM:1.60, m_micro:42442, m_minor:1146, m_med:161, m5:17, m6:4, m7:0, note:"花蓮外海強震 (變電箱起火事故)"},
+  {y:2016, tot:47976, maxM:6.60, date:"2016-02-05", avgM:1.52, m_micro:46608, m_minor:1192, m_med:149, m5:24, m6:3, m7:0, note:"0206 美濃地震 (臺南維冠大樓倒塌震災)"},
+  {y:2017, tot:33604, maxM:5.85, date:"2017-09-20", avgM:1.56, m_micro:32578, m_minor:914, m_med:97, m5:15, m6:0, m7:0, note:"花蓮外海地震"},
+  {y:2018, tot:49706, maxM:6.26, date:"2018-02-06", avgM:1.52, m_micro:48091, m_minor:1348, m_med:235, m5:30, m6:2, m7:0, note:"0206 花蓮地震 (米崙斷層破裂，統帥大飯店倒塌)"},
+  {y:2019, tot:38184, maxM:6.32, date:"2019-04-18", avgM:1.52, m_micro:37070, m_minor:953, m_med:139, m5:20, m6:2, m7:0, note:"花蓮秀林地震"},
+  {y:2020, tot:22894, maxM:6.24, date:"2020-07-26", avgM:1.96, m_micro:21405, m_minor:1294, m_med:170, m5:23, m6:2, m7:0, note:"宜蘭外海強震"},
+  {y:2021, tot:17953, maxM:6.54, date:"2021-10-24", avgM:2.31, m_micro:15405, m_minor:2255, m_med:258, m5:32, m6:3, m7:0, note:"宜蘭南澳極深強震 (全臺大搖晃)"},
+  {y:2022, tot:13292, maxM:6.83, date:"2022-09-18", avgM:2.52, m_micro:10301, m_minor:2431, m_med:487, m5:61, m6:12, m7:0, note:"0918 池上大地震 (高寮大橋震斷，烈震高達12次)"},
+  {y:2023, tot:24378, maxM:6.20, date:"2023-10-23", avgM:2.06, m_micro:22191, m_minor:1907, m_med:255, m5:24, m6:1, m7:0, note:"花蓮外海強震"},
+  {y:2024, tot:34408, maxM:7.19, date:"2024-04-02", avgM:2.11, m_micro:29896, m_minor:3384, m_med:973, m5:144, m6:10, m7:1, note:"0403 花蓮大地震 (M7.2，強震達144次破歷史紀錄)"},
+  {y:2025, tot:38493, maxM:7.01, date:"2025-12-27", avgM:1.94, m_micro:36245, m_minor:1910, m_med:295, m5:39, m6:3, m7:1, note:"東部外海大地震"},
+  {y:2026, tot:20304, maxM:5.78, date:"2026-03-12", avgM:1.95, m_micro:19311, m_minor:882, m_med:101, m5:10, m6:0, m7:0, note:"截至 2026/07/30 統計最新進度"}
+];
+
+let currentFilter = 'all';
+
+function renderTable(data) {
+  const tbody = document.querySelector('#dataTable tbody');
+  tbody.innerHTML = '';
+  data.forEach(d => {
+    const tr = document.createElement('tr');
+    if (d.y === 1999) tr.className = 'row-peak-amber';
+    if (d.y === 2024) tr.className = 'row-peak-crimson';
+
+    let m7Tag = d.m7 > 0 ? `<span class="tag tag-m7 mono">${d.m7} 次</span>` : `<span style="color:#cbd5e1">0</span>`;
+    let m6Tag = d.m6 > 0 ? `<span class="tag tag-m6 mono">${d.m6} 次</span>` : `<span style="color:#cbd5e1">0</span>`;
+    let m5Tag = d.m5 > 0 ? `<span class="tag tag-m5 mono">${d.m5} 次</span>` : `<span style="color:#cbd5e1">0</span>`;
+
+    tr.innerHTML = `
+      <td class="mono" style="font-weight:700">${d.y}</td>
+      <td class="mono" style="font-weight:600;color:#0f172a">${d.tot.toLocaleString()}</td>
+      <td class="mono" style="font-weight:700;color:${d.maxM >= 7 ? 'var(--crimson)' : (d.maxM >= 6 ? 'var(--amber)' : '#334155')}">${d.maxM.toFixed(2)}</td>
+      <td class="mono" style="color:#64748b">${d.date}</td>
+      <td class="mono">${d.avgM.toFixed(2)}</td>
+      <td class="mono" style="color:#64748b">${d.m_micro.toLocaleString()}</td>
+      <td class="mono" style="color:#64748b">${d.m_minor.toLocaleString()}</td>
+      <td class="mono" style="color:#64748b">${d.m_med.toLocaleString()}</td>
+      <td>${m5Tag}</td>
+      <td>${m6Tag}</td>
+      <td>${m7Tag}</td>
+      <td class="note-cell">${d.note}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterData(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  let filtered = STATS;
+  if (type === 'major') {
+    filtered = STATS.filter(d => d.m6 >= 3);
+  } else if (type === 'great') {
+    filtered = STATS.filter(d => d.m7 >= 1 || d.maxM >= 7.0);
+  } else if (type === 'modern') {
+    filtered = STATS.filter(d => d.y >= 2012);
+  }
+  renderTable(filtered);
+}
+
+function searchTable() {
+  const query = document.getElementById('searchBox').value.trim().toLowerCase();
+  let baseData = STATS;
+  if (currentFilter === 'major') baseData = STATS.filter(d => d.m6 >= 3);
+  else if (currentFilter === 'great') baseData = STATS.filter(d => d.m7 >= 1 || d.maxM >= 7.0);
+  else if (currentFilter === 'modern') baseData = STATS.filter(d => d.y >= 2012);
+
+  if (!query) {
+    renderTable(baseData);
+    return;
+  }
+  const filtered = baseData.filter(d => {
+    return d.y.toString().includes(query) ||
+           d.maxM.toString().includes(query) ||
+           d.date.includes(query) ||
+           d.note.toLowerCase().includes(query);
+  });
+  renderTable(filtered);
+}
+
+// 初始渲染
+renderTable(STATS);
+</script>
+</body>
+</html>
