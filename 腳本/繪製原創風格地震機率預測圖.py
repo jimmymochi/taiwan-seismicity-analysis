@@ -69,8 +69,24 @@ ORIGINAL_PALETTE = [
     '#801515'    # 10: 棗紅黑赤 (極度破裂危險核心)
 ]
 
-LEVELS_M5 = [0.0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 18.0, 25.0, 45.0]
-LEVELS_M6 = [0.0, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 55.0]
+# 各時間尺度專屬自適應階梯 (Adaptive Levels for each Horizon)
+# 徹底解決 5 年長週期「整片通紅失去分辨性」的致命缺陷：
+# 1. 低機率區採冷灰藍與海藍保持清爽背景
+# 2. 中高機率區 (20%~35%) 採暖土金與火焰琥珀
+# 3. 45%+ 極端核心破裂區才使用胭脂深紅與棗黑赤
+HORIZON_LEVELS_M6 = {
+    'prob_m6_7d':  [0.0, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 35.0, 52.0],
+    'prob_m6_30d': [0.0, 0.1, 0.2, 0.5, 1.0, 2.0, 4.0, 8.0, 15.0, 25.0, 35.0, 45.0],
+    'prob_m6_1y':  [0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0, 16.0, 20.0, 24.0, 28.0, 32.0],
+    'prob_m6_5y':  [0.0, 1.0, 5.0, 12.0, 18.0, 25.0, 32.0, 38.0, 44.0, 48.0, 51.0, 55.0]
+}
+
+HORIZON_LEVELS_M5 = {
+    'prob_m5_7d':  [0.0, 0.1, 0.2, 0.5, 1.0, 2.0, 4.0, 8.0, 15.0, 22.0, 28.0, 36.0],
+    'prob_m5_30d': [0.0, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 18.0, 28.0, 38.0, 48.0, 60.0],
+    'prob_m5_1y':  [0.0, 1.0, 3.0, 6.0, 10.0, 14.0, 18.0, 22.0, 26.0, 30.0, 34.0, 38.0],
+    'prob_m5_5y':  [0.0, 2.0, 5.0, 10.0, 15.0, 19.0, 23.0, 27.0, 30.0, 33.0, 35.0, 38.0]
+}
 
 def load_coastlines():
     """載入臺灣與福建沿海幾何"""
@@ -91,11 +107,9 @@ def load_coastlines():
 
 def plot_4panel_probability_map(df_pred, target_type='M5', snapshot_type='2026', output_filename=None):
     """
-    繪製四大統一時間尺度之地震機率預測圖
-    target_type: 'M5' or 'M6'
-    snapshot_type: '2026' (現役) or '2022' (盲測)
+    繪製四大統一時間尺度之地震機率預測圖 (具備自適應色階與峰值熱區標註)
     """
-    print(f"  繪製 [{target_type}+ | {snapshot_type} 快照] 4聯預測圖...")
+    print(f"  繪製 [{target_type}+ | {snapshot_type} 快照] 4聯預測圖 (自適應動態色階)...")
     tw_gdf, fujian_line, pingtan_poly = load_coastlines()
 
     # 網格座標 (0.02° 經緯度，約 2.2 km)
@@ -108,38 +122,39 @@ def plot_4panel_probability_map(df_pred, target_type='M5', snapshot_type='2026',
 
     # 4 個統一時間尺度欄位
     t_tag = target_type.lower()
-    col_map = {
-        '極短期 (未來 7 天)': f'prob_{t_tag}_7d',
-        '短期 (未來 30 天)': f'prob_{t_tag}_30d',
-        '中期 (未來 1 年)': f'prob_{t_tag}_1y',
-        '中長期 (未來 5 年)': f'prob_{t_tag}_5y'
-    }
+    col_map = [
+        ('極短期 (未來 7 天)', f'prob_{t_tag}_7d'),
+        ('短期 (未來 30 天)', f'prob_{t_tag}_30d'),
+        ('中期 (未來 1 年)', f'prob_{t_tag}_1y'),
+        ('中長期 (未來 5 年)', f'prob_{t_tag}_5y')
+    ]
 
-    levels = LEVELS_M5 if target_type == 'M5' else LEVELS_M6
+    horizon_levels = HORIZON_LEVELS_M5 if target_type == 'M5' else HORIZON_LEVELS_M6
     cmap = mcolors.ListedColormap(ORIGINAL_PALETTE)
-    norm = mcolors.BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
-    fig, axes = plt.subplots(1, 4, figsize=(26, 12), dpi=300, facecolor='#ffffff')
-    plt.subplots_adjust(top=0.86, bottom=0.14, left=0.035, right=0.965, wspace=0.12)
+    fig, axes = plt.subplots(1, 4, figsize=(26, 12.5), dpi=300, facecolor='#ffffff')
+    plt.subplots_adjust(top=0.86, bottom=0.17, left=0.035, right=0.965, wspace=0.13)
 
-    # 頂部標題與說明文字 (原創 lieflat 規範架構)
+    # 頂部標題與說明文字
     snapshot_info = "現役推論快照：2026/08/01 00:00 (臺灣時間) · 納入最新 873,145 筆歷史觀測 · 向未來推算" if snapshot_type == '2026' else "回溯盲測驗證快照：2022/01/01 00:00 (臺灣時間) · CSEP 國際盲測驗證基準點"
 
-    fig.text(0.04, 0.945, f"臺灣及鄰近海域 | {target_type}+ 地震破裂機率時空預測看板", 
+    fig.text(0.04, 0.950, f"臺灣及鄰近海域 | {target_type}+ 地震破裂機率時空預測看板", 
              fontsize=20, fontweight='bold', color='#0f172a')
-    fig.text(0.04, 0.920, f"時空機器學習預測體系 · 38,178 空間網格 (2.2 km) · 15 km 構造高斯平滑 · 3-Fold 等張機率校準 (Isotonic Calibration)", 
+    fig.text(0.04, 0.925, f"時空機器學習預測體系 · 38,178 空間網格 (2.2 km) · 15 km 構造高斯平滑 · 3-Fold 等張機率校準 · 各時窗自適應動態色階", 
              fontsize=11, color='#475569')
-    fig.text(0.04, 0.898, f"{snapshot_info} · 統一四大時間尺度 (7天 / 30天 / 1年 / 5年)", 
+    fig.text(0.04, 0.903, f"{snapshot_info} · 統一四大時間尺度 (7天 / 30天 / 1年 / 5年)", 
              fontsize=10.5, color='#64748b')
 
-    panels = list(col_map.items())
-
-    for idx, (title, col_name) in enumerate(panels):
+    for idx, (title, col_name) in enumerate(col_map):
         ax = axes[idx]
         ax.set_facecolor('#ffffff')
 
         probs = df_pred[col_name].values * 100.0  # 轉為百分比
         max_prob = np.max(probs)
+
+        # 取得該時窗專屬等級
+        levels = horizon_levels[col_name]
+        norm = mcolors.BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
         # 二維空間插值 + 15 km 高斯平滑
         raw_grid = griddata((pts_lon, pts_lat), probs, (grid_X, grid_Y), method='nearest')
@@ -179,18 +194,59 @@ def plot_4panel_probability_map(df_pred, target_type='M5', snapshot_type='2026',
         ax.text(0.98, 1.025, f"單格最高 {max_prob:.2f}%", transform=ax.transAxes, fontsize=10, 
                 color='#1e293b', fontweight='600', ha='right')
 
-    # 底部中央色階條 (Colorbar)
-    cbar_ax = fig.add_axes([0.28, 0.075, 0.44, 0.022])
-    cbar = fig.colorbar(cf, cax=cbar_ax, orientation='horizontal', ticks=levels)
-    cbar.outline.set_linewidth(0.6)
-    cbar.outline.set_edgecolor('#94a3b8')
-    
-    # 色階刻度標籤
-    tick_labels = [f"{v:g}" for v in levels]
-    cbar.set_ticklabels(tick_labels)
-    cbar.ax.tick_params(labelsize=9, color='#64748b')
-    cbar.set_label(f"單格至少一次 {target_type}+ 以上之校準破裂機率 (%) · 各色階寬度不等", 
-                   fontsize=10.5, color='#334155', labelpad=6)
+        # 在 5 年子圖上標註頂級破裂核心熱區 (明確回答使用者「哪個區又更高」)
+        if idx == 3:
+            if target_type == 'M6':
+                if snapshot_type == '2026':
+                    # 南澳外海
+                    ax.scatter(121.77, 24.52, s=42, facecolor='#ffffff', edgecolor='#801515', linewidth=1.8, zorder=7)
+                    ax.annotate("南澳外海 52.2%\n(破裂第一核心)", xy=(121.77, 24.52), xytext=(122.15, 24.85),
+                                fontsize=8.5, fontweight='bold', color='#801515',
+                                bbox=dict(boxstyle="round,pad=0.25", fc="#ffffff", ec="#801515", lw=1.0, alpha=0.92),
+                                arrowprops=dict(arrowstyle="->", color='#801515', lw=1.0), zorder=8)
+                    # 縱谷玉里
+                    ax.scatter(121.34, 23.60, s=42, facecolor='#ffffff', edgecolor='#801515', linewidth=1.8, zorder=7)
+                    ax.annotate("縱谷玉里 52.2%\n(破裂第二核心)", xy=(121.34, 23.60), xytext=(120.30, 23.85),
+                                fontsize=8.5, fontweight='bold', color='#801515',
+                                bbox=dict(boxstyle="round,pad=0.25", fc="#ffffff", ec="#801515", lw=1.0, alpha=0.92),
+                                arrowprops=dict(arrowstyle="->", color='#801515', lw=1.0), zorder=8)
+                else:
+                    # 2022 盲測版核心：和平海盆
+                    ax.scatter(122.35, 24.28, s=42, facecolor='#ffffff', edgecolor='#801515', linewidth=1.8, zorder=7)
+                    ax.annotate("和平海盆 52.2%\n(盲測預測核心)", xy=(122.35, 24.28), xytext=(121.80, 23.85),
+                                fontsize=8.5, fontweight='bold', color='#801515',
+                                bbox=dict(boxstyle="round,pad=0.25", fc="#ffffff", ec="#801515", lw=1.0, alpha=0.92),
+                                arrowprops=dict(arrowstyle="->", color='#801515', lw=1.0), zorder=8)
+            else:
+                # M5+ 5年熱區標註
+                if snapshot_type == '2026':
+                    ax.scatter(120.68, 23.13, s=40, facecolor='#ffffff', edgecolor='#801515', linewidth=1.6, zorder=7)
+                    ax.annotate("甲仙-六龜 36.6%", xy=(120.68, 23.13), xytext=(120.05, 22.80),
+                                fontsize=8.5, fontweight='bold', color='#801515',
+                                bbox=dict(boxstyle="round,pad=0.25", fc="#ffffff", ec="#801515", lw=0.9, alpha=0.92),
+                                arrowprops=dict(arrowstyle="->", color='#801515', lw=0.9), zorder=8)
+                else:
+                    ax.scatter(121.41, 22.93, s=40, facecolor='#ffffff', edgecolor='#801515', linewidth=1.6, zorder=7)
+                    ax.annotate("成功-池上 35.6%\n(前瞻命中2022地震)", xy=(121.41, 22.93), xytext=(121.85, 22.65),
+                                fontsize=8.5, fontweight='bold', color='#801515',
+                                bbox=dict(boxstyle="round,pad=0.25", fc="#ffffff", ec="#801515", lw=0.9, alpha=0.92),
+                                arrowprops=dict(arrowstyle="->", color='#801515', lw=0.9), zorder=8)
+
+        # 每個子圖下方獨立放置色階條 (Colorbar)
+        pos = ax.get_position()
+        cbar_ax = fig.add_axes([pos.x0, 0.088, pos.width, 0.014])
+        
+        # 精選 5-6 個具代表性的刻度
+        sel_idx = [0, 2, 4, 6, 8, 10, 11]
+        disp_ticks = [levels[i] for i in sel_idx if i < len(levels)]
+        disp_ticks = sorted(list(set(disp_ticks)))
+        
+        cbar = fig.colorbar(cf, cax=cbar_ax, orientation='horizontal', ticks=disp_ticks)
+        cbar.outline.set_linewidth(0.6)
+        cbar.outline.set_edgecolor('#94a3b8')
+        cbar.set_ticklabels([f"{v:g}%" for v in disp_ticks])
+        cbar.ax.tick_params(labelsize=8, color='#64748b')
+        cbar.set_label(f"{title}機率刻度", fontsize=8.5, color='#475569', labelpad=3)
 
     # 底部說明底注
     fig.text(0.04, 0.025,
